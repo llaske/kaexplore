@@ -20,8 +20,16 @@ function getMapping(mappings, language) {
 	return mappings[language];
 }
 
+// Find locale for a string
+function getLocale(value, locale) {
+	if (!locale) return value;
+	if (!locale[value]) return value;
+	if (locale[value].length < 2) return value;
+	return eval('decodeURIComponent(escape("'+locale[value][1].replace(/(\r\n|\n|\r)/gm,"").replace(/"/g,"'")+'"))');
+}
+
 // Explore a node
-function explore(node, level, mapping, language) {
+function explore(node, level, mapping, language, locale) {
 	// Stats
 	countTotal++;
 	if (node.kind == 'Topic') countTopic++;
@@ -35,7 +43,7 @@ function explore(node, level, mapping, language) {
 	if (node.kind == 'Video') {
 		videoUrl = node.download_urls.mp4;
 		sizeVideo += videosSize[node.id];
-		line += 'Video: '+node.title+' '+videoUrl;
+		line += 'Video: '+getLocale(node.title, locale)+' '+videoUrl;
 		if (mapping) {
 			if (mapping[node.id]) {
 				sizeMapped += videosSize[node.id];
@@ -48,7 +56,7 @@ function explore(node, level, mapping, language) {
 		line += ' ('+node.duration+'s)';
 	}
 	else if (node.kind == 'Exercise') {
-		line += 'Exercice: '+node.title;
+		line += 'Exercice: '+getLocale(node.title, locale);
 	}
 	else {
 		line += node.title;
@@ -60,7 +68,7 @@ function explore(node, level, mapping, language) {
 	// Explore children
 	var length = node.children ? node.children.length : 0;
 	for (var i = 0 ; i < length ; i++) {
-		explore(node.children[i], level+1, mapping, language);
+		explore(node.children[i], level+1, mapping, language, locale);
 	}
 }
 
@@ -82,9 +90,16 @@ if (argv.length > 3) {
 }
 var languageToMap = argv[2];
 var languagemapping = languageToMap ? getMapping(languageMappings, languageToMap) : null;
+var languagelocale = null;
+if (languageToMap) {
+	try {
+		languagelocale = require('./django_'+languageToMap+'.json');
+	} catch(e) {
+	}
+}
 
 // Launch from root
-explore(topics, 0, languagemapping, languageToMap);
+explore(topics, 0, languagemapping, languageToMap, languagelocale);
 
 // Display stats
 if (!modeList) {
