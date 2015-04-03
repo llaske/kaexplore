@@ -13,6 +13,7 @@ var countTopic = 0;
 var countMapped = 0;
 var sizeMapped = 0;
 var modeList = false;
+var modeRestrict = false;
 
 
 // Look for a language mapping
@@ -50,8 +51,7 @@ function explore(node, level, mapping, language, locale) {
 				videoUrl = videoUrl.replace(new RegExp(node.id, 'g'), mapping[node.id]);
 				line += videoUrl + ' ('+language+')';
 				countMapped++;
-			} else
-				videoUrl = '';
+			}
 		}
 		line += ' ('+node.duration+'s)';
 	}
@@ -63,7 +63,13 @@ function explore(node, level, mapping, language, locale) {
 	}
 	if (!modeList)
 		console.log(line);
-	else if (videoUrl.length != 0) console.log(videoUrl);
+	else {
+		if (videoUrl.length != 0) {
+			if (!modeRestrict || !mapping || mapping[node.id]) {
+				console.log(videoUrl);
+			}
+		}
+	}
 
 	// Explore children
 	var length = node.children ? node.children.length : 0;
@@ -74,27 +80,32 @@ function explore(node, level, mapping, language, locale) {
 
 // Write usage
 function writeUsage() {
-	console.log("Usage: "+process.argv[0]+" kaexplore.js [-l] [<language>]");
+	console.log("Usage: "+process.argv[0]+" kaexplore.js [-l] [-r] [<language>]");
 }
 
 // Get language mapping
-var argv = process.argv;
-var listOption = argv.indexOf("-l");
-if (listOption != -1) {
-	argv.splice(listOption, 1);
-	modeList = true;
-}
-if (argv.length > 3) {
+var argv = require('minimist')(process.argv.slice(2), {boolean: ['l','r']});
+modeList = argv.l;
+modeRestrict = argv.r;
+var languageToMap = null;
+if (argv._.length == 1) {
+	languageToMap = argv._[0];
+} else if (argv._.length > 1) {
 	writeUsage();
 	return;
 }
-var languageToMap = argv[2];
-var languagemapping = languageToMap ? getMapping(languageMappings, languageToMap) : null;
+var languagemapping = null;
+if (languageToMap) {
+	languagemapping = getMapping(languageMappings, languageToMap);
+	if (!languagemapping)
+		console.warn("WARNING: No mapping for "+languageToMap);
+}
 var languagelocale = null;
 if (languageToMap) {
 	try {
 		languagelocale = require('./django_'+languageToMap+'.json');
 	} catch(e) {
+		console.warn("WARNING: No localization for "+languageToMap);
 	}
 }
 

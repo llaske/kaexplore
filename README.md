@@ -10,7 +10,7 @@ To see standard - english - content.
    
 To see translated (here French) content. Find the exact language name to use in languagelookup.json.
 
-Add '-l' option to the command line to get only the list of video for the language.
+Add '-l' option to the command line to get only the list of video for the language. Add '-r' to restrict the list to translated videos.
 
 
 # How it works ?
