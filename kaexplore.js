@@ -39,16 +39,21 @@ function explore(node, level, mapping, language, locale) {
 	
 	// Display properties
 	var line = '';
-	var videoUrl = '';	
+	var videoUrl = '';
+	var title = '';
+	var imageUrl = '';
 	for (var i = 0 ; i < level ; i++) line += '  ';
 	if (node.kind == 'Video') {
 		videoUrl = node.download_urls.mp4;
+		imageUrl = node.download_urls.png;
 		sizeVideo += videosSize[node.id];
-		line += 'Video: '+getLocale(node.title, locale)+' '+videoUrl;
+		title = getLocale(node.title, locale);
+		line += 'Video: '+title+' '+videoUrl;
 		if (mapping) {
 			if (mapping[node.id]) {
 				sizeMapped += videosSize[node.id];
 				videoUrl = videoUrl.replace(new RegExp(node.id, 'g'), mapping[node.id]);
+				imageUrl = imageUrl.replace(new RegExp(node.id, 'g'), mapping[node.id]);
 				line += videoUrl + ' ('+language+')';
 				countMapped++;
 			}
@@ -66,7 +71,7 @@ function explore(node, level, mapping, language, locale) {
 	else {
 		if (videoUrl.length != 0) {
 			if (!modeRestrict || !mapping || mapping[node.id]) {
-				console.log(videoUrl);
+				console.log(videoUrl+';'+imageUrl+';'+title);
 			}
 		}
 	}
