@@ -14,6 +14,7 @@ var countMapped = 0;
 var sizeMapped = 0;
 var modeList = false;
 var modeRestrict = false;
+var modeNodir = false;
 
 
 // Look for a language mapping
@@ -45,7 +46,9 @@ function explore(node, level, mapping, language, locale) {
 	for (var i = 0 ; i < level ; i++) line += '  ';
 	if (node.kind == 'Video') {
 		videoUrl = node.download_urls.mp4;
+		if (modeNodir) videoUrl = videoUrl.substr(videoUrl.lastIndexOf('/')+1);
 		imageUrl = node.download_urls.png;
+		if (modeNodir) imageUrl = imageUrl.substr(imageUrl.lastIndexOf('/')+1);
 		sizeVideo += videosSize[node.id];
 		title = getLocale(node.title, locale);
 		line += 'Video: '+title+' '+videoUrl;
@@ -89,9 +92,10 @@ function writeUsage() {
 }
 
 // Get language mapping
-var argv = require('minimist')(process.argv.slice(2), {boolean: ['l','r']});
+var argv = require('minimist')(process.argv.slice(2), {boolean: ['l','r','n']});
 modeList = argv.l;
 modeRestrict = argv.r;
+modeNodir = argv.n;
 var languageToMap = null;
 if (argv._.length == 1) {
 	languageToMap = argv._[0];
